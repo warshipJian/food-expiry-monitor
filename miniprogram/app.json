@@ -2,7 +2,8 @@
   "pages": [
     "pages/home/index",
     "pages/add/index",
-    "pages/detail/index"
+    "pages/detail/index",
+    "pages/profile/index"
   ],
   "window": {
     "navigationBarTitleText": "食光聆讯",

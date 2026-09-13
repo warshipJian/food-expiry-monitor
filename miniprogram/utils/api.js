@@ -35,4 +35,21 @@ function wechatLogin() {
   })
 }
 
-module.exports = { request, devLogin, wechatLogin }
+function uploadAvatar(filePath) {
+  const app = getApp()
+  return new Promise((resolve, reject) => {
+    wx.uploadFile({
+      url: `${baseURL}/v1/profile/avatar`, filePath, name: 'avatar',
+      header: app.globalData.token ? { Authorization: `Bearer ${app.globalData.token}` } : {},
+      success(result) {
+        let data
+        try { data = JSON.parse(result.data) } catch (_) { return reject(new Error('头像上传响应异常')) }
+        if (result.statusCode >= 200 && result.statusCode < 300) return resolve(data)
+        reject(new Error(data.error || '头像上传失败'))
+      },
+      fail: () => reject(new Error('头像上传失败，请检查网络'))
+    })
+  })
+}
+
+module.exports = { request, devLogin, wechatLogin, uploadAvatar }

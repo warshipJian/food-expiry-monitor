@@ -26,6 +26,7 @@ func (s *Service) Router() *gin.Engine {
 	r := gin.New()
 	r.Use(gin.Logger(), gin.Recovery())
 	r.GET("/healthz", func(c *gin.Context) { c.JSON(http.StatusOK, gin.H{"status": "ok"}) })
+	r.Static("/uploads", s.cfg.UploadDir)
 	r.POST("/v1/auth/wechat/login", s.wechatLogin)
 	if s.cfg.Environment != "production" {
 		r.POST("/v1/auth/dev/login", s.devLogin)
@@ -33,6 +34,9 @@ func (s *Service) Router() *gin.Engine {
 	v1 := r.Group("/v1")
 	v1.Use(s.authRequired())
 	v1.GET("/dashboard", s.getDashboard)
+	v1.GET("/profile", s.getProfile)
+	v1.PATCH("/profile", s.updateProfile)
+	v1.POST("/profile/avatar", s.uploadAvatar)
 	v1.GET("/foods", s.listFoods)
 	v1.POST("/foods", s.createFood)
 	v1.GET("/foods/:id", s.getFood)

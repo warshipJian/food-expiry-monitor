@@ -12,6 +12,7 @@ type Config struct {
 	Environment      string
 	HTTPAddr         string
 	DatabasePath     string
+	UploadDir        string
 	TokenSecret      string
 	ReminderCronHour int
 	WeChatAppID      string
@@ -27,9 +28,12 @@ func LoadConfig() Config {
 	}
 	path := value("DATABASE_PATH", "./data/food-expiry.db")
 	_ = os.MkdirAll(filepath.Dir(path), 0o750)
+	uploadDir := value("UPLOAD_DIR", "./data/uploads")
+	_ = os.MkdirAll(uploadDir, 0o750)
 	return Config{
 		Environment: value("APP_ENV", "development"), HTTPAddr: value("HTTP_ADDR", ":8080"),
 		DatabasePath: path, TokenSecret: value("TOKEN_SECRET", "development-only-secret"),
+		UploadDir:        uploadDir,
 		ReminderCronHour: hour, WeChatAppID: os.Getenv("WECHAT_APP_ID"),
 		WeChatAppSecret: os.Getenv("WECHAT_APP_SECRET"), WeChatTemplateID: os.Getenv("WECHAT_TEMPLATE_ID"),
 	}
