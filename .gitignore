@@ -3,6 +3,8 @@
 *.db-shm
 *.db-wal
 project.private.config.json
+miniprogram/.env.local
+miniprogram/utils/config.runtime.js
 bin/
 food-expiry-api
 coverage.out

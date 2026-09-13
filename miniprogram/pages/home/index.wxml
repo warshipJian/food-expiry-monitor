@@ -21,4 +21,18 @@
     <view class="food-info"><view class="food-name">{{item.name}}</view><view class="food-meta">{{item.storageLocation}} · 到期 {{item.expiryLabel}}</view></view>
     <view class="badge {{item.urgency}}">{{item.relative}}</view>
   </view>
+
+  <view wx:if="{{consumedFoods.length}}" class="consumed-section">
+    <view class="consumed-toggle" bindtap="toggleConsumed">
+      <view><text class="consumed-title">我吃完了</text><text class="consumed-count">{{consumedFoods.length}} 件</text></view>
+      <text class="chevron">{{showConsumed ? '⌃' : '⌄'}}</text>
+    </view>
+    <view wx:if="{{showConsumed}}">
+      <view wx:for="{{consumedFoods}}" wx:key="id" class="food-card consumed-card" bindtap="openFood" data-id="{{item.id}}">
+        <view class="food-icon">✓</view>
+        <view class="food-info"><view class="food-name">{{item.name}}</view><view class="food-meta">到期日 {{item.expiryLabel}}</view></view>
+        <view class="consumed-badge">已吃完</view>
+      </view>
+    </view>
+  </view>
 </view>

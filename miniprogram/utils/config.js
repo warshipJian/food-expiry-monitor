@@ -1,6 +1,3 @@
-// Change environment to "development" for local API debugging.
-module.exports = {
-  environment: 'production',
-  baseURL: 'https://api.example.com',
-  subscribeTemplateID: 'PoN7xGCUuCcpKJeu45Ml2cAlO3JeDo_Ta2RMRg8GUfI'
-}
+// Generated from miniprogram/.env.local. Run `npm run miniprogram:config`
+// whenever local API settings change.
+module.exports = require('./config.runtime')

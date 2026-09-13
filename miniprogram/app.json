@@ -5,7 +5,7 @@
     "pages/detail/index"
   ],
   "window": {
-    "navigationBarTitleText": "保鲜管家",
+    "navigationBarTitleText": "食光聆讯",
     "navigationBarBackgroundColor": "#FAF8F2",
     "navigationBarTextStyle": "black",
     "backgroundColor": "#FAF8F2"

@@ -17,7 +17,13 @@ The service starts at `http://localhost:8080`. SQLite data is persisted at `./da
 2. Open this repository in WeChat Developer Tools. The project root is `miniprogram/` (already declared in `project.config.json`).
 3. In **Details → Local settings**, enable *Do not verify valid domains, web-view domains, TLS versions, and HTTPS certificates*.
 
-For local debugging, change `environment` in `miniprogram/utils/config.js` to `development` and use `http://localhost:8080` as its `baseURL`. Development uses `/v1/auth/dev/login` automatically, so no WeChat AppID or AppSecret is needed. Production uses `wx.login()` and `https://api.example.com`; the development route does not exist when `APP_ENV=production`.
+Copy `miniprogram/.env.local.example` to `miniprogram/.env.local`, set its environment and API URL, then generate the runtime config:
+
+```bash
+npm run miniprogram:config
+```
+
+The local `.env` file and generated runtime config are ignored by Git. Development uses `/v1/auth/dev/login` automatically, so no WeChat AppID or AppSecret is needed. Production uses `wx.login()` and `https://api.example.com`; the development route does not exist when `APP_ENV=production`.
 
 ## API
 
