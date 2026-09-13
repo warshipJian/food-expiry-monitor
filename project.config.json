@@ -1,0 +1,13 @@
+{
+  "description": "Food expiry monitor Mini Program",
+  "miniprogramRoot": "miniprogram/",
+  "compileType": "miniprogram",
+  "setting": {
+    "urlCheck": false,
+    "es6": true,
+    "postcss": true,
+    "minified": false
+  },
+  "appid": "wx1fd8d94b1e65111a",
+  "projectname": "food-expiry-monitor"
+}

@@ -1,0 +1,24 @@
+<view class="page">
+  <view class="hero">
+    <view class="eyebrow">今天，先吃这些</view>
+    <view class="hero-title">别让食物被遗忘</view>
+    <view class="hero-subtitle" wx:if="{{dashboard.expiring}}">有 {{dashboard.expiring}} 件食物将在 3 天内到期</view>
+    <view class="hero-subtitle" wx:else>冰箱里的每一件，都有好归宿</view>
+  </view>
+
+  <view class="summary">
+    <view class="summary-cell"><text class="number">{{dashboard.active}}</text><text>在库</text></view>
+    <view class="summary-cell warning"><text class="number">{{dashboard.expiring}}</text><text>临期</text></view>
+    <view class="summary-cell danger"><text class="number">{{dashboard.expired}}</text><text>过期</text></view>
+  </view>
+
+  <button class="primary-button add" bindtap="addFood">+ 添加食物</button>
+
+  <view class="section-title">我的食物</view>
+  <view wx:if="{{!loading && !foods.length}}" class="empty">还没有记录。<br/>从冰箱里挑一件食物开始吧。</view>
+  <view wx:for="{{foods}}" wx:key="id" class="food-card" bindtap="openFood" data-id="{{item.id}}">
+    <view class="food-icon">{{item.category === 'dairy' ? '🥛' : item.category === 'fruit' ? '🍎' : item.category === 'meat' ? '🥩' : '🍱'}}</view>
+    <view class="food-info"><view class="food-name">{{item.name}}</view><view class="food-meta">{{item.storageLocation}} · 到期 {{item.expiryLabel}}</view></view>
+    <view class="badge {{item.urgency}}">{{item.relative}}</view>
+  </view>
+</view>

@@ -1,0 +1,6 @@
+<view wx:if="{{food}}" class="page">
+  <view class="food-head"><view class="emoji">🍱</view><view><view class="name">{{food.name}}</view><view class="location">存放于 {{food.storageLocation}}</view></view></view>
+  <view class="expiry"><text class="expiry-caption">到期日期</text><view class="expiry-date">{{food.expiryLabel}}</view><view class="relative">{{food.relative}}</view></view>
+  <view class="block"><view class="block-title">到期提醒</view><view class="block-note">请先在小程序中授权微信订阅消息。</view><radio-group bindchange="chooseReminder"><label wx:for="{{[10,7,5,3,1]}}" wx:key="*this" class="option"><radio value="{{item}}" checked="{{item === reminderDays}}" color="#2f7d59"/>到期前 {{item}} 天</label></radio-group><button class="ghost-button reminder" loading="{{savingReminder}}" bindtap="saveReminder">设置提醒</button></view>
+  <view class="actions"><button class="primary-button" bindtap="consume">我吃完了</button><button class="discard" bindtap="discard">丢弃</button></view>
+</view>
