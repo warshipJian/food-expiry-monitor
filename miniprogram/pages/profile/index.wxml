@@ -1,11 +1,10 @@
 <view class="page">
-  <view class="intro">资料仅用于展示和识别你的食品清单。</view>
-  <view class="profile-card">
-    <view class="row"><text class="label">头像</text><button class="avatar-button" open-type="chooseAvatar" bindchooseavatar="chooseAvatar" loading="{{saving}}"><image wx:if="{{profile.avatarUrl}}" src="{{profile.avatarUrl}}" mode="aspectFill" class="avatar"/><text wx:else class="avatar-placeholder">选择</text></button></view>
-    <view class="row nickname-row"><text class="label">昵称</text><input type="nickname" maxlength="20" value="{{nickname}}" placeholder="输入昵称" bindinput="inputNickname" /></view>
+  <view class="profile-card overview">
+    <view class="avatar-wrap"><image wx:if="{{profile.avatarUrl}}" src="{{profile.avatarUrl}}" mode="aspectFill" class="avatar"/><text wx:else class="avatar-placeholder">我</text></view>
+    <view class="nickname">{{profile.nickname || '微信用户'}}</view>
+    <view class="profile-tip">管理属于你的食品清单</view>
+    <button class="edit-button" bindtap="openEdit">编辑资料</button>
   </view>
-  <button class="primary-button save" loading="{{saving}}" bindtap="saveNickname">保存昵称</button>
-  <view class="privacy-note">你可以自行选择头像和填写昵称。头像、昵称仅用于小程序内展示。</view>
   <view class="history-title">我吃完了 <text>{{consumedFoods.length}} 件</text></view>
   <view wx:if="{{!consumedFoods.length}}" class="history-empty">还没有吃完记录。</view>
   <view wx:for="{{consumedFoods}}" wx:key="id" class="history-card" bindtap="openFood" data-id="{{item.id}}"><view class="check">✓</view><view class="history-info"><view>{{item.name}}</view><text>到期日 {{item.expiryLabel}}</text></view><text class="done">已吃完</text></view>

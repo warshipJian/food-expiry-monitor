@@ -1,0 +1,6 @@
+<view class="page">
+  <view class="intro">资料仅用于展示和识别你的食品清单。</view>
+  <view class="profile-card"><view class="row"><text class="label">头像</text><button class="avatar-button" open-type="chooseAvatar" bindchooseavatar="chooseAvatar" loading="{{saving}}"><image wx:if="{{profile.avatarUrl}}" src="{{profile.avatarUrl}}" mode="aspectFill" class="avatar"/><text wx:else class="avatar-placeholder">选择</text></button></view><view class="row nickname-row"><text class="label">昵称</text><input type="nickname" maxlength="20" value="{{nickname}}" placeholder="输入昵称" bindinput="inputNickname" /></view></view>
+  <button class="primary-button save" loading="{{saving}}" bindtap="saveNickname">保存昵称</button>
+  <view class="privacy-note">你可以自行选择头像和填写昵称。头像、昵称仅用于小程序内展示。</view>
+</view>

@@ -7,31 +7,13 @@ function displayProfile(profile) {
 }
 
 Page({
-  data: { profile: { nickname: '', avatarUrl: '' }, nickname: '', consumedFoods: [], saving: false },
-  onLoad() { this.load() },
+  data: { profile: { nickname: '', avatarUrl: '' }, consumedFoods: [] },
+  onShow() { this.load() },
   load() {
     Promise.all([api.request('GET', '/v1/profile'), api.request('GET', '/v1/foods?status=consumed')])
-      .then(([profile, result]) => this.setData({ profile: displayProfile(profile), nickname: profile.nickname || '', consumedFoods: result.items.map(food => ({ ...food, expiryLabel: dateOnly(food.expiryDate) })) }))
+      .then(([profile, result]) => this.setData({ profile: displayProfile(profile), consumedFoods: result.items.map(food => ({ ...food, expiryLabel: dateOnly(food.expiryDate) })) }))
       .catch(err => wx.showToast({ title: err.message, icon: 'none' }))
   },
-  chooseAvatar(event) {
-    const avatarUrl = event.detail.avatarUrl
-    if (!avatarUrl) return
-    this.setData({ saving: true })
-    api.uploadAvatar(avatarUrl)
-      .then(profile => { this.setData({ profile: displayProfile(profile) }); wx.showToast({ title: '头像已保存', icon: 'success' }) })
-      .catch(err => wx.showToast({ title: err.message, icon: 'none' }))
-      .finally(() => this.setData({ saving: false }))
-  },
-  inputNickname(event) { this.setData({ nickname: event.detail.value }) },
-  saveNickname() {
-    const nickname = this.data.nickname.trim()
-    if (!nickname) { wx.showToast({ title: '请输入昵称', icon: 'none' }); return }
-    this.setData({ saving: true })
-    api.request('PATCH', '/v1/profile', { nickname })
-      .then(profile => { this.setData({ profile: displayProfile(profile), nickname: profile.nickname }); wx.showToast({ title: '昵称已保存', icon: 'success' }) })
-      .catch(err => wx.showToast({ title: err.message, icon: 'none' }))
-      .finally(() => this.setData({ saving: false }))
-  },
+  openEdit() { wx.navigateTo({ url: '/pages/profile-edit/index' }) },
   openFood(event) { wx.navigateTo({ url: `/pages/detail/index?id=${event.currentTarget.dataset.id}` }) }
 })
