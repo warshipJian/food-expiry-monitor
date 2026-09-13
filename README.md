@@ -17,7 +17,7 @@ The service starts at `http://localhost:8080`. SQLite data is persisted at `./da
 2. Open this repository in WeChat Developer Tools. The project root is `miniprogram/` (already declared in `project.config.json`).
 3. In **Details → Local settings**, enable *Do not verify valid domains, web-view domains, TLS versions, and HTTPS certificates*.
 
-The Mini Program defaults to `http://localhost:8080` in `miniprogram/utils/config.js`. It uses `/v1/auth/dev/login` automatically in development, so no WeChat AppID or AppSecret is needed for page/API debugging. That route does not exist when `APP_ENV=production`.
+For local debugging, change `environment` in `miniprogram/utils/config.js` to `development` and use `http://localhost:8080` as its `baseURL`. Development uses `/v1/auth/dev/login` automatically, so no WeChat AppID or AppSecret is needed. Production uses `wx.login()` and `https://api.example.com`; the development route does not exist when `APP_ENV=production`.
 
 ## API
 
@@ -40,4 +40,4 @@ Date values use `YYYY-MM-DD`. A reminder is sent at 09:00 server-local time on t
 - Set a strong `TOKEN_SECRET` and set `APP_ENV=production`.
 - Put the SQLite file on a local persistent volume; do not share it over NFS.
 - The server enables WAL mode, foreign keys and a busy timeout at startup.
-- Back up the SQLite database regularly. Configure WeChat credentials to enable real login; reminder dispatch currently logs jobs until the WeChat subscription sender is configured.
+- Back up the SQLite database regularly. Configure WeChat credentials and the subscription template ID to enable real login and reminder delivery.

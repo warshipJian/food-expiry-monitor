@@ -23,4 +23,16 @@ function devLogin() {
   return request('POST', '/v1/auth/dev/login', { deviceId }).then(res => res.token)
 }
 
-module.exports = { request, devLogin }
+function wechatLogin() {
+  return new Promise((resolve, reject) => {
+    wx.login({
+      success(result) {
+        if (!result.code) return reject(new Error('微信登录未返回 code'))
+        request('POST', '/v1/auth/wechat/login', { code: result.code }).then(response => resolve(response.token)).catch(reject)
+      },
+      fail() { reject(new Error('微信登录失败，请稍后再试')) }
+    })
+  })
+}
+
+module.exports = { request, devLogin, wechatLogin }

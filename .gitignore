@@ -2,6 +2,7 @@
 *.db
 *.db-shm
 *.db-wal
+project.private.config.json
 bin/
+food-expiry-api
 coverage.out
-

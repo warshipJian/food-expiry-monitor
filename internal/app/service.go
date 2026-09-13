@@ -3,16 +3,24 @@ package app
 import (
 	"database/sql"
 	"net/http"
+	"sync"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
 
 type Service struct {
-	db  *sql.DB
-	cfg Config
+	db                 *sql.DB
+	cfg                Config
+	httpClient         *http.Client
+	accessToken        string
+	accessTokenExpires time.Time
+	accessTokenMu      sync.Mutex
 }
 
-func NewService(db *sql.DB, cfg Config) *Service { return &Service{db: db, cfg: cfg} }
+func NewService(db *sql.DB, cfg Config) *Service {
+	return &Service{db: db, cfg: cfg, httpClient: &http.Client{Timeout: 10 * time.Second}}
+}
 
 func (s *Service) Router() *gin.Engine {
 	r := gin.New()
