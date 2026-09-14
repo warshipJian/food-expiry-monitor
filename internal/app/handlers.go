@@ -22,8 +22,14 @@ func (s *Service) listFoods(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid status"})
 		return
 	}
-	query := `SELECT id,name,barcode,category,storage_location,quantity,unit,expiry_date,status,created_at,updated_at FROM foods WHERE user_id=? AND status=?`
-	args := []any{userID(c), status}
+	familyID, err := s.familyIDForUser(userID(c))
+	if err != nil && err != sql.ErrNoRows {
+		internalError(c, scopeError(err))
+		return
+	}
+	scope, scopeArgs := familyScopeClause(userID(c), familyID)
+	query := `SELECT id,name,barcode,category,storage_location,quantity,unit,expiry_date,status,created_at,updated_at FROM foods WHERE ` + scope + ` AND status=?`
+	args := append(scopeArgs, status)
 	if location := c.Query("location"); location != "" {
 		query += " AND storage_location=?"
 		args = append(args, location)
@@ -64,7 +70,12 @@ func (s *Service) createFood(c *gin.Context) {
 	}
 	normalizeFood(&input)
 	id := newID()
-	_, err = s.db.Exec(`INSERT INTO foods (id,user_id,name,barcode,category,storage_location,quantity,unit,expiry_date) VALUES (?,?,?,?,?,?,?,?,?)`, id, userID(c), input.Name, input.Barcode, input.Category, input.StorageLocation, input.Quantity, input.Unit, expiry.Format(dateLayout))
+	familyID, familyErr := s.familyIDForUser(userID(c))
+	if familyErr != nil && familyErr != sql.ErrNoRows {
+		internalError(c, scopeError(familyErr))
+		return
+	}
+	_, err = s.db.Exec(`INSERT INTO foods (id,user_id,family_id,name,barcode,category,storage_location,quantity,unit,expiry_date) VALUES (?,?,?,?,?,?,?,?,?,?)`, id, userID(c), nullableFamilyID(familyID), input.Name, input.Barcode, input.Category, input.StorageLocation, input.Quantity, input.Unit, expiry.Format(dateLayout))
 	if err != nil {
 		internalError(c, err)
 		return
@@ -99,7 +110,14 @@ func (s *Service) updateFood(c *gin.Context) {
 		return
 	}
 	normalizeFood(&input)
-	result, err := s.db.Exec(`UPDATE foods SET name=?,barcode=?,category=?,storage_location=?,quantity=?,unit=?,expiry_date=?,updated_at=CURRENT_TIMESTAMP WHERE id=? AND user_id=? AND status='active'`, input.Name, input.Barcode, input.Category, input.StorageLocation, input.Quantity, input.Unit, expiry.Format(dateLayout), c.Param("id"), userID(c))
+	scope, scopeArgs, err := s.foodScope(userID(c))
+	if err != nil {
+		internalError(c, err)
+		return
+	}
+	args := []any{input.Name, input.Barcode, input.Category, input.StorageLocation, input.Quantity, input.Unit, expiry.Format(dateLayout), c.Param("id")}
+	args = append(args, scopeArgs...)
+	result, err := s.db.Exec(`UPDATE foods SET name=?,barcode=?,category=?,storage_location=?,quantity=?,unit=?,expiry_date=?,updated_at=CURRENT_TIMESTAMP WHERE id=? AND `+scope+` AND status='active'`, args...)
 	if err != nil {
 		internalError(c, err)
 		return
@@ -116,7 +134,14 @@ func (s *Service) updateFood(c *gin.Context) {
 func (s *Service) consumeFood(c *gin.Context) { s.changeFoodStatus(c, "consumed") }
 func (s *Service) discardFood(c *gin.Context) { s.changeFoodStatus(c, "discarded") }
 func (s *Service) changeFoodStatus(c *gin.Context, status string) {
-	result, err := s.db.Exec("UPDATE foods SET status=?,updated_at=CURRENT_TIMESTAMP WHERE id=? AND user_id=? AND status='active'", status, c.Param("id"), userID(c))
+	scope, scopeArgs, err := s.foodScope(userID(c))
+	if err != nil {
+		internalError(c, err)
+		return
+	}
+	args := []any{status, c.Param("id")}
+	args = append(args, scopeArgs...)
+	result, err := s.db.Exec("UPDATE foods SET status=?,updated_at=CURRENT_TIMESTAMP WHERE id=? AND "+scope+" AND status='active'", args...)
 	if err != nil {
 		internalError(c, err)
 		return
@@ -132,7 +157,12 @@ func (s *Service) changeFoodStatus(c *gin.Context, status string) {
 
 func (s *Service) getDashboard(c *gin.Context) {
 	var result dashboard
-	err := s.db.QueryRow(`SELECT COUNT(*), COALESCE(SUM(CASE WHEN expiry_date >= date('now') AND expiry_date <= date('now','+3 days') THEN 1 ELSE 0 END),0), COALESCE(SUM(CASE WHEN expiry_date < date('now') THEN 1 ELSE 0 END),0) FROM foods WHERE user_id=? AND status='active'`, userID(c)).Scan(&result.Active, &result.Expiring, &result.Expired)
+	scope, args, err := s.foodScope(userID(c))
+	if err != nil {
+		internalError(c, err)
+		return
+	}
+	err = s.db.QueryRow(`SELECT COUNT(*), COALESCE(SUM(CASE WHEN expiry_date >= date('now') AND expiry_date <= date('now','+3 days') THEN 1 ELSE 0 END),0), COALESCE(SUM(CASE WHEN expiry_date < date('now') THEN 1 ELSE 0 END),0) FROM foods WHERE `+scope+` AND status='active'`, args...).Scan(&result.Active, &result.Expiring, &result.Expired)
 	if err != nil {
 		internalError(c, err)
 		return
@@ -177,7 +207,28 @@ func (s *Service) createReminder(c *gin.Context) {
 }
 
 func (s *Service) findFood(uid, id string) (Food, error) {
-	return scanFood(s.db.QueryRow(`SELECT id,name,barcode,category,storage_location,quantity,unit,expiry_date,status,created_at,updated_at FROM foods WHERE id=? AND user_id=?`, id, uid))
+	scope, args, err := s.foodScope(uid)
+	if err != nil {
+		return Food{}, err
+	}
+	args = append([]any{id}, args...)
+	return scanFood(s.db.QueryRow(`SELECT id,name,barcode,category,storage_location,quantity,unit,expiry_date,status,created_at,updated_at FROM foods WHERE id=? AND `+scope, args...))
+}
+
+func (s *Service) foodScope(uid string) (string, []any, error) {
+	familyID, err := s.familyIDForUser(uid)
+	if err != nil && err != sql.ErrNoRows {
+		return "", nil, scopeError(err)
+	}
+	scope, args := familyScopeClause(uid, familyID)
+	return scope, args, nil
+}
+
+func nullableFamilyID(familyID string) any {
+	if familyID == "" {
+		return nil
+	}
+	return familyID
 }
 
 type scanner interface{ Scan(...any) error }

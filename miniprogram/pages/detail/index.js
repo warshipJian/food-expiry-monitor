@@ -3,12 +3,30 @@ const config = require('../../utils/config')
 const { dateOnly, relativeExpiry } = require('../../utils/date')
 
 Page({
-  data: { food: null, id: '', reminderDays: 7, savingReminder: false },
+  data: { food: null, id: '', reminderDays: 7, savingReminder: false, savingExpiry: false },
   onLoad(options) { this.setData({ id: options.id }); this.load() },
   load() {
     api.request('GET', `/v1/foods/${this.data.id}`).then(food => this.setData({ food: { ...food, expiryLabel: dateOnly(food.expiryDate), relative: relativeExpiry(food.expiryDate) } })).catch(err => wx.showToast({ title: err.message, icon: 'none' }))
   },
   chooseReminder(e) { this.setData({ reminderDays: Number(e.detail.value) }) },
+  correctExpiry(e) {
+    const expiryDate = e.detail.value
+    const food = this.data.food
+    if (this.data.savingExpiry || !food || expiryDate === food.expiryLabel) return
+    this.setData({ savingExpiry: true })
+    api.request('PATCH', `/v1/foods/${this.data.id}`, {
+      name: food.name,
+      barcode: food.barcode,
+      category: food.category,
+      storageLocation: food.storageLocation,
+      quantity: food.quantity,
+      unit: food.unit,
+      expiryDate
+    }).then(updated => {
+      this.setData({ food: { ...updated, expiryLabel: dateOnly(updated.expiryDate), relative: relativeExpiry(updated.expiryDate) } })
+      wx.showToast({ title: '到期日已更新', icon: 'success' })
+    }).catch(err => wx.showToast({ title: err.message, icon: 'none' })).finally(() => this.setData({ savingExpiry: false }))
+  },
   saveReminder() {
     this.setData({ savingReminder: true })
     this.requestSubscription()

@@ -1,0 +1,15 @@
+<view class="page">
+  <block wx:if="{{family}}">
+    <view class="hero"><text>家庭食品清单</text><view>{{family.name}}</view></view>
+    <view class="code-card"><text>邀请码</text><view class="code">{{family.inviteCode}}</view><button class="copy" size="mini" bindtap="copyCode">复制并分享</button></view>
+    <view class="tip">分享邀请码给家人。所有成员均可查看和编辑家庭食品，首页统计显示家庭总数。</view>
+    <view class="section-title">家庭成员 <text>{{family.members.length}} 人</text></view>
+    <view class="members"><view wx:for="{{family.members}}" wx:key="index" class="member"><image wx:if="{{item.avatarUrl}}" src="{{item.avatarUrl}}" class="member-avatar" mode="aspectFill"/><view wx:else class="member-avatar fallback">我</view><view class="member-name">{{item.nickname || '微信用户'}} <text wx:if="{{item.role === 'owner'}}">创建者</text></view></view></view>
+  </block>
+  <block wx:else>
+    <view class="hero"><text>和家人一起管理食物</text><view>共享食品清单，减少浪费</view></view>
+    <view class="panel"><view class="panel-title">创建家庭</view><input placeholder="例如：我们的家" maxlength="30" value="{{familyName}}" bindinput="inputName"/><button loading="{{saving}}" bindtap="createFamily">创建并共享食品</button></view>
+    <view class="or">或</view>
+    <view class="panel"><view class="panel-title">加入家庭</view><input class="code-input" placeholder="输入 6 位邀请码" maxlength="6" value="{{inviteCode}}" bindinput="inputCode"/><button loading="{{saving}}" class="secondary" bindtap="joinFamily">加入家庭</button></view>
+  </block>
+</view>

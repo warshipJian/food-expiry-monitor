@@ -4,6 +4,7 @@
     "pages/add/index",
     "pages/detail/index",
     "pages/profile/index",
+    "pages/family/index",
     "pages/profile-edit/index"
   ],
   "window": {

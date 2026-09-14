@@ -64,7 +64,7 @@ MINIPROGRAM_BASE_URL=https://api.example.com
 npm run miniprogram:config
 ```
 
-上传完成后，建议切回开发环境并再次执行生成命令。生产环境使用 `wx.login()` 登录，且微信公众平台必须将实际 API 域名（例如 `https://api.example.com`）添加为 request 合法域名。
+上传完成后，建议切回开发环境并再次执行生成命令。生产环境使用 `wx.login()` 登录，且微信公众平台必须将实际 API 域名（例如 `https://api.example.com`）同时添加为 **request 合法域名** 和 **uploadFile 合法域名**。头像使用 `wx.uploadFile` 上传；仅配置 request 合法域名时，微信客户端会在请求到达服务端前拦截上传。
 
 ## 接口概览
 
@@ -83,8 +83,14 @@ Authorization: Bearer <token>
 | POST | `/v1/foods/:id/consume` | 标记为已吃完，保留历史记录 |
 | POST | `/v1/foods/:id/discard` | 标记为丢弃 |
 | POST | `/v1/foods/:id/reminder` | 创建一次到期提醒任务 |
+| GET / POST | `/v1/family` | 查询或创建家庭 |
+| POST | `/v1/family/join` | 使用 6 位邀请码加入家庭 |
 
 食品日期格式为 `YYYY-MM-DD`。提醒在用户授权订阅消息后创建，服务端按提醒日期扫描任务并发送模板消息。
+
+## 家庭共享
+
+用户可在“我 → 我的家庭”创建家庭，或输入家人分享的 6 位大写邀请码加入。创建或加入时，用户已有的食品会并入家庭；之后所有家庭成员可共同查看、添加、编辑、吃完或丢弃食品，首页统计和“我吃完了”历史均显示家庭总数据。一个用户目前仅能加入一个家庭。
 
 ## 微信订阅消息
 

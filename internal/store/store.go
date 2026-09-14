@@ -19,6 +19,7 @@ func Migrate(db *sql.DB) error {
 		`CREATE TABLE IF NOT EXISTS foods (
             id TEXT PRIMARY KEY,
             user_id TEXT NOT NULL REFERENCES users(id),
+            family_id TEXT REFERENCES families(id),
             name TEXT NOT NULL,
             barcode TEXT NOT NULL DEFAULT '',
             category TEXT NOT NULL DEFAULT 'other',
@@ -30,6 +31,21 @@ func Migrate(db *sql.DB) error {
             created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
             updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
         )`,
+		`CREATE TABLE IF NOT EXISTS families (
+            id TEXT PRIMARY KEY,
+            name TEXT NOT NULL,
+            invite_code TEXT NOT NULL UNIQUE,
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+        )`,
+		`CREATE TABLE IF NOT EXISTS family_members (
+            family_id TEXT NOT NULL REFERENCES families(id) ON DELETE CASCADE,
+            user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+            role TEXT NOT NULL DEFAULT 'member' CHECK(role IN ('owner','member')),
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (family_id, user_id),
+            UNIQUE (user_id)
+        )`,
+		`CREATE INDEX IF NOT EXISTS idx_family_members_family ON family_members(family_id)`,
 		`CREATE INDEX IF NOT EXISTS idx_foods_user_status_expiry ON foods(user_id, status, expiry_date)`,
 		`CREATE TABLE IF NOT EXISTS reminder_jobs (
             id TEXT PRIMARY KEY,
@@ -52,6 +68,12 @@ func Migrate(db *sql.DB) error {
 	}
 	if err := ensureColumn(db, "users", "avatar_url", "TEXT NOT NULL DEFAULT ''"); err != nil {
 		return err
+	}
+	if err := ensureColumn(db, "foods", "family_id", "TEXT REFERENCES families(id)"); err != nil {
+		return err
+	}
+	if _, err := db.Exec("CREATE INDEX IF NOT EXISTS idx_foods_family_status_expiry ON foods(family_id, status, expiry_date)"); err != nil {
+		return fmt.Errorf("create family food index: %w", err)
 	}
 	return nil
 }
